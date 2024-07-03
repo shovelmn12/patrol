@@ -1,3 +1,7 @@
+## 2.8.2
+
+- Add support for root integration test (default is still 'integration_test')
+
 ## 2.8.1
 
 - Fix parsing non string values from --dart-define-from-file (#2243).

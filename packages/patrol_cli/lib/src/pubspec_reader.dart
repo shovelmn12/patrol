@@ -8,6 +8,7 @@ class PatrolPubspecConfig with EquatableMixin {
     required this.ios,
     required this.macos,
     this.testFileSuffix = '_test.dart',
+    this.folder = 'integration_test',
   });
 
   PatrolPubspecConfig.empty()
@@ -21,9 +22,10 @@ class PatrolPubspecConfig with EquatableMixin {
   IOSPubspecConfig ios;
   MacOSPubspecConfig macos;
   String testFileSuffix;
+  String folder;
 
   @override
-  List<Object?> get props => [android, ios, macos, testFileSuffix];
+  List<Object?> get props => [android, ios, macos, testFileSuffix, folder];
 }
 
 class AndroidPubspecConfig with EquatableMixin {
@@ -130,6 +132,11 @@ class PubspecReader {
     final dynamic testFileSuffix = patrol['test_file_suffix'];
     if (testFileSuffix != null && testFileSuffix is String) {
       config.testFileSuffix = testFileSuffix;
+    }
+
+    final dynamic folder = patrol['folder'];
+    if (folder != null && folder is String) {
+      config.folder = folder;
     }
 
     final android = patrol['android'] as Map?;

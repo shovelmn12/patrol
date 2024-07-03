@@ -114,9 +114,9 @@ class DevelopCommand extends PatrolCommand {
       throwToolExit('Cannot use release build mode with develop');
     }
 
-    final entrypoint = _testBundler.bundledTestFile;
+    final entrypoint = _testBundler.bundledTestFile(config.folder);
     if (boolArg('generate-bundle')) {
-      _testBundler.createDevelopTestBundle(target);
+      _testBundler.createDevelopTestBundle(config.folder, target);
     }
 
     final androidFlavor = stringArg('flavor') ?? config.android.flavor;

@@ -15,7 +15,7 @@ class TestBundler {
   final Logger _logger;
 
   /// Creates an entrypoint for use with `patrol test` and `patrol build`.
-  void createTestBundle(List<String> testFilePaths) {
+  void createTestBundle(String folder, List<String> testFilePaths) {
     if (testFilePaths.isEmpty) {
       throw ArgumentError('testFilePaths must not be empty');
     }
@@ -106,25 +106,27 @@ ${generateGroupsCode(testFilePaths).split('\n').map((e) => '  $e').join('\n')}
 }
 ''';
 
+    final bundleFile = bundledTestFile(folder);
+
     // This file must not end with "_test.dart", otherwise it'll be picked up
     // when finding tests to bundle.
-    bundledTestFile
+    bundleFile
       ..createSync(recursive: true)
       ..writeAsStringSync(contents);
 
     _logger.detail(
-      'Generated entrypoint ${bundledTestFile.path} with ${testFilePaths.length} bundled test(s)',
+      'Generated entrypoint ${bundleFile.path} with ${testFilePaths.length} bundled test(s)',
     );
   }
 
   // This file must not end with "_test.dart", otherwise it'll be picked up
   // when finding tests to bundle.
-  File get bundledTestFile => _projectRoot
-      .childDirectory('integration_test')
+  File bundledTestFile(String folder) => _projectRoot
+      .childDirectory(folder)
       .childFile('test_bundle.dart');
 
   /// Creates an entrypoint for use with `patrol develop`.
-  void createDevelopTestBundle(String testFilePath) {
+  void createDevelopTestBundle(String folder, String testFilePath) {
     final contents = '''
 // ignore_for_file: type=lint, invalid_use_of_internal_member
 
@@ -149,12 +151,14 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
 }
 ''';
 
-    bundledTestFile
+    final bundleFile = bundledTestFile(folder);
+
+    bundleFile
       ..createSync(recursive: true)
       ..writeAsStringSync(contents);
 
     _logger
-        .detail('Generated entrypoint ${bundledTestFile.path} for development');
+        .detail('Generated entrypoint ${bundleFile.path} for development');
   }
 
   /// Input:
@@ -183,7 +187,7 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
       final relativeTestFilePathWithoutSlash = relativeTestFilePath[0] == '/'
           ? relativeTestFilePath.replaceFirst('/', '')
           : relativeTestFilePath;
-      imports.add("import '$relativeTestFilePathWithoutSlash' as $testName;");
+      imports.add("import '../$relativeTestFilePathWithoutSlash' as $testName;");
     }
 
     return imports.join('\n');
@@ -223,16 +227,9 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
   /// 'integration_test'.
   String _normalizeTestPath(String testFilePath) {
     var relativeTestFilePath = testFilePath.replaceAll(
-      _projectRoot.childDirectory('integration_test').absolute.path,
+      _projectRoot.absolute.path,
       '',
     );
-
-    if (relativeTestFilePath.startsWith('integration_test')) {
-      relativeTestFilePath = relativeTestFilePath.replaceFirst(
-        'integration_test',
-        '',
-      );
-    }
 
     if (relativeTestFilePath.startsWith(_fs.path.separator)) {
       relativeTestFilePath = relativeTestFilePath.substring(1);
@@ -243,9 +240,7 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
   }
 
   String _createTestName(String relativeTestFilePath) {
-    var testName = relativeTestFilePath
-        .replaceFirst('integration_test${_fs.path.separator}', '')
-        .replaceAll('/', '__');
+    var testName = relativeTestFilePath.replaceAll('/', '__');
 
     testName = testName.substring(0, testName.length - 5);
     return testName;

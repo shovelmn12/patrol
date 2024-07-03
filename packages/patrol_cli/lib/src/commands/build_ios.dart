@@ -87,9 +87,9 @@ class BuildIOSCommand extends PatrolCommand {
       _logger.detail('Received test target: $t');
     }
 
-    final entrypoint = _testBundler.bundledTestFile;
+    final entrypoint = _testBundler.bundledTestFile(config.folder);
     if (boolArg('generate-bundle')) {
-      _testBundler.createTestBundle(targets);
+      _testBundler.createTestBundle(config.folder, targets);
     }
 
     final flavor = stringArg('flavor') ?? config.ios.flavor;
