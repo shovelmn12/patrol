@@ -106,7 +106,7 @@ class TestCommand extends PatrolCommand {
 
     final entrypoint = _testBundler.bundledTestFile(config.folder);
     if (boolArg('generate-bundle')) {
-      _testBundler.createTestBundle(config.folder, targets);
+      _testBundler.createTestBundle(config.folder, targets, testFileSuffix);
     }
 
     final androidFlavor = stringArg('flavor') ?? config.android.flavor;

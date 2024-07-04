@@ -15,7 +15,7 @@ class TestBundler {
   final Logger _logger;
 
   /// Creates an entrypoint for use with `patrol test` and `patrol build`.
-  void createTestBundle(String folder, List<String> testFilePaths) {
+  void createTestBundle(String folder, List<String> testFilePaths, [String suffix = '_test.dart']) {
     if (testFilePaths.isEmpty) {
       throw ArgumentError('testFilePaths must not be empty');
     }
@@ -32,7 +32,7 @@ import 'package:patrol/src/native/contracts/contracts.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
-${generateImports(testFilePaths)}
+${generateImports(testFilePaths, suffix)}
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
@@ -89,7 +89,7 @@ Future<void> main() async {
   });
 
   // START: GENERATED TEST GROUPS
-${generateGroupsCode(testFilePaths).split('\n').map((e) => '  $e').join('\n')}
+${generateGroupsCode(testFilePaths, suffix).split('\n').map((e) => '  $e').join('\n')}
   // END: GENERATED TEST GROUPS
 
   final dartTestGroup = await testExplorationCompleter.future;
@@ -126,7 +126,7 @@ ${generateGroupsCode(testFilePaths).split('\n').map((e) => '  $e').join('\n')}
       .childFile('test_bundle.dart');
 
   /// Creates an entrypoint for use with `patrol develop`.
-  void createDevelopTestBundle(String folder, String testFilePath) {
+  void createDevelopTestBundle(String folder, String testFilePath, [String suffix = '_test.dart']) {
     final contents = '''
 // ignore_for_file: type=lint, invalid_use_of_internal_member
 
@@ -135,7 +135,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 
 // START: GENERATED TEST IMPORTS
-${generateImports([testFilePath])}
+${generateImports([testFilePath], suffix)}
 // END: GENERATED TEST IMPORTS
 
 Future<void> main() async {
@@ -146,7 +146,7 @@ Future<void> main() async {
         debugDefaultTargetPlatformOverride;
 
   // START: GENERATED TEST GROUPS
-${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
+${generateGroupsCode([testFilePath], suffix).split('\n').map((e) => '  $e').join('\n')}
   // END: GENERATED TEST GROUPS
 }
 ''';
@@ -179,11 +179,11 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
   /// '''
   /// ```
   @visibleForTesting
-  String generateImports(List<String> testFilePaths) {
+  String generateImports(List<String> testFilePaths, [String suffix = '_test.dart']) {
     final imports = <String>[];
     for (final testFilePath in testFilePaths) {
       final relativeTestFilePath = _normalizeTestPath(testFilePath);
-      final testName = _createTestName(relativeTestFilePath);
+      final testName = _createTestName(relativeTestFilePath, suffix);
       final relativeTestFilePathWithoutSlash = relativeTestFilePath[0] == '/'
           ? relativeTestFilePath.replaceFirst('/', '')
           : relativeTestFilePath;
@@ -211,11 +211,11 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
   /// '''
   /// ```
   @visibleForTesting
-  String generateGroupsCode(List<String> testFilePaths) {
+  String generateGroupsCode(List<String> testFilePaths, [String suffix = '_test.dart']) {
     final groups = <String>[];
     for (final testFilePath in testFilePaths) {
       final relativeTestFilePath = _normalizeTestPath(testFilePath);
-      final testName = _createTestName(relativeTestFilePath);
+      final testName = _createTestName(relativeTestFilePath, suffix);
       final groupName = testName.replaceAll('__', '.');
       final testEntrypoint = '$testName.main';
       groups.add("group('$groupName', $testEntrypoint);");
@@ -239,10 +239,10 @@ ${generateGroupsCode([testFilePath]).split('\n').map((e) => '  $e').join('\n')}
     return relativeTestFilePath.replaceAll(_fs.path.separator, '/');
   }
 
-  String _createTestName(String relativeTestFilePath) {
+  String _createTestName(String relativeTestFilePath, String suffix) {
     var testName = relativeTestFilePath.replaceAll('/', '__');
 
-    testName = testName.substring(0, testName.length - 5);
+    testName = testName.substring(0, testName.length - suffix.length);
     return testName;
   }
 }
