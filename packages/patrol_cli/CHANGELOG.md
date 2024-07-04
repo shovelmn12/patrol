@@ -1,6 +1,7 @@
 ## 2.8.2
 
 - Add support for root integration test (default is still 'integration_test')
+- Fix suffix support with any character
 
 ## 2.8.1
 
